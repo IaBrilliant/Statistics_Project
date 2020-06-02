@@ -27,7 +27,6 @@ def maxL(xVals): #liklihood function
     maxL= sum/len(xVals) #didnt actually do any maths so this is a stand in 
     return maxL    
     
-  
 
 vals = sht.generate_data()
 vals=upc(vals)
