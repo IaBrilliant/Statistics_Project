@@ -1,15 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np 
 import STOM_higgs_tools as sht
+from statistics import mean
 
 
-def upc(xVals):
-    vals= xVals.tolist()
-    for v in vals:
-        if v< 140:
-           vals.remove(v)  #getting rid of values above 140
-    final = np.asarray(vals)
-    return final
+def delete(x):              #Previous algorithm didn't work
+    if x > 122 and x < 127: #You can play around with these values and you will realise that lambda is the highest with these params. 
+      return False          #This is due to the fact that the gaussian peak is approx. in this range
+    else: 
+      return True 
 
 def findA(lamb, bin_edges, bin_heights): 
     count =0
@@ -17,22 +16,22 @@ def findA(lamb, bin_edges, bin_heights):
     for b in bin_heights:
         dArea+=b*(bin_edges[count+1]-bin_edges[count]) #total area under histrogram
         count+=1
-    return dArea/lamb    #finding normalisation factor
-
-
-def maxL(xVals): #liklihood function
-    sum=0 
-    for x in xVals:
-        sum+=x
-    maxL= sum/len(xVals) #didnt actually do any maths so this is a stand in 
-    return maxL    
+    return dArea*lamb/(lamb**2*(np.exp(-104.0/lamb) - np.exp(-155.0/lamb))) #You can find A by equating areas under exp. and histogram  
     
+params = {'figure.figsize': [5, 5]} #so it looks pretty 
+plt.rcParams.update(params)
 
 vals = sht.generate_data()
-vals=upc(vals)
-lamb=maxL(vals)
-bin_heights, bin_edges, patches = plt.hist(vals, range = [0.0, 1.0], bins = 10) #doing histogram
-a= findA(lamb,bin_edges, bin_heights) #finding normalisation factor
-expectation= sht.get_B_expectation(bin_edges, a, lamb) 
+bin_heights, bin_edges, patches = plt.hist(vals, range = [104, 155], bins = 30) #doing histogram for specified range
+bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+plt.errorbar(bin_centers, bin_heights, yerr = np.sqrt(bin_heights), ls = '', color = 'red', lw = 1, capsize = 2.5)
+#Statistical uncertainty is yerr = sqrt(N) where N is the height of the bin - Possion error (Computer Session 2)
+plt.ylim(0, 2000)
+plt.xlim(104, 155)
+
+vals_truncated = filter(delete, vals) # Filter is fast and efficient in deleting
+lamb = mean(vals_truncated) #There is a pre-written func to calculate mean
+a = findA(lamb,bin_edges, bin_heights) #finding normalisation factor
+expectation = sht.get_B_expectation(bin_edges, a, lamb) 
 plt.plot(bin_edges, expectation)
 plt.show()
