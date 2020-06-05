@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import STOM_higgs_tools as sht
 from statistics import mean
-
+from scipy import stats 
 
 def delete(x):              #Previous algorithm didn't work
     if x > 122 and x < 127: #You can play around with these values and you will realise that lambda is the highest with these params. 
@@ -35,3 +35,11 @@ a = findA(lamb,bin_edges, bin_heights) #finding normalisation factor
 expectation = sht.get_B_expectation(bin_edges, a, lamb) 
 plt.plot(bin_edges, expectation)
 plt.show()
+
+Chi_sq_b = sht.get_B_chi_trunc(vals, [104, 121, 129.5, 155], [10, 15], a, lamb) #New function for finding the value of chi_sq (see updated sht)
+Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) #New function for finding the value of chi_sq 
+print("Normalised Chi-Squared (backgroung) value is", Chi_sq_b) #By normalised I mean divided by N degrees of freedom
+#You can see that Chi-sq is approximately equal to the number of degrees of freedom, hence it is a good fit.
+print("Normalised Chi-Squared (+signal) value is", Chi_sq_s) #By normalised I mean divided by N degrees of freedom
+print("P-value is:", 1 - stats.chi2.cdf(Chi_sq_s * 30, 28))
+#Typical significane level is 5%, hence we reject H0
