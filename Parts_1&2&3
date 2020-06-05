@@ -37,7 +37,7 @@ plt.plot(bin_edges, expectation)
 plt.show()
 
 Chi_sq_b = sht.get_B_chi_trunc(vals, [104, 121, 129.5, 155], [10, 15], a, lamb) #New function for finding the value of chi_sq (see updated sht)
-Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) #New function for finding the value of chi_sq 
+Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) 
 print("Normalised Chi-Squared (backgroung) value is", Chi_sq_b) #By normalised I mean divided by N degrees of freedom
 #You can see that Chi-sq is approximately equal to the number of degrees of freedom, hence it is a good fit.
 print("Normalised Chi-Squared (+signal) value is", Chi_sq_s) #By normalised I mean divided by N degrees of freedom
