@@ -3,6 +3,7 @@ import numpy as np
 import STOM_higgs_tools as sht
 from statistics import mean
 from scipy import stats 
+import pickle 
 
 def delete(x):              #Previous algorithm didn't work
     if x > 122 and x < 127: #You can play around with these values and you will realise that lambda is the highest with these params. 
@@ -41,5 +42,30 @@ Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb)
 print("Normalised Chi-Squared (backgroung) value is", Chi_sq_b) #By normalised I mean divided by N degrees of freedom
 #You can see that Chi-sq is approximately equal to the number of degrees of freedom, hence it is a good fit.
 print("Normalised Chi-Squared (+signal) value is", Chi_sq_s) #By normalised I mean divided by N degrees of freedom
-print("P-value is:", 1 - stats.chi2.cdf(Chi_sq_s * 30, 28))
+print("P-value is:", 1 - stats.chi2.cdf(Chi_sq_s * 28, 28))
 #Typical significane level is 5%, hence we reject H0
+
+
+#Saving the Chi_set separately
+'''
+Chi_set = np.zeros(10000)
+for i in range(0, 10000):
+    s = sht.generate_background(10e5, 30)
+    heights, edges, patches_ = plt.hist(s, range = [104, 155], bins = 30)
+    Lambd = mean(s)
+    A_c = findA(Lambd, edges, heights)
+    Chi_set[i] = (sht.get_B_chi(s, [104, 155], 30, A_c, Lambd))*28
+    
+
+f = open('Chi_Set_background', 'wb')
+pickle.dump(Chi_set, f)
+f.close()
+print('P0 saved')
+exit(0) # kills the program
+'''
+# code that loads Chi_set_back from file
+f = open('Chi_Set_background', 'rb')
+Chi_set = pickle.load(f)
+f.close()
+chi_heights, chi_edges, patches_ = plt.hist(Chi_set, range = [0, 90], bins = 90) #We can clearly see our value to be next to the peak
+plt.show()
