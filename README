@@ -1,0 +1,33 @@
+To run the file you should: 
+
+- Download the file in a folder
+- Download a ‘Values’ file in a folder
+- Download a ‘Chi_Set_background’ file in a folder
+- Download a ‘Chi_Set_background185’ file in a folder
+- The results are printed with the plots
+- You can also run #%% part to look at the distribution plot
+
+#Part 1: 
+
+Plotting the generated data in the required range. Errors are added with accordance to the Poisson error  (i.e. uncertainty is the height of the bin)
+
+#Part 2:
+
+In order to calculate the mean (i.e. lambda) you have to take care of the gaussian peak on top of the background. To do this we simply remove the region around the expected peak by using filter function. As the result we obtain a new truncated set of values which, if to be visualised, looks like the previous histogram with an emptiness in the middle (the chosen region). In this case the region was chosen to be x > 122 and x < 127. 
+
+Lambda was determined by calculating the mean of the set and later used in estimating a value of the normalisation constant A. The value was obtained by comparing the area under the part of histogram without the peak (truncated) and integral where an exponent was an integrand. Estimates were pretty accurate and close to the true values, so I decided to ignore part 2(d) as it was not essential. 
+
+#Part 3:
+
+Highlighted in green you can actually see the function that I should have used for the estimation. Instead, I directly referred to the set of background values by simply cutting off the gaussian ones. I would not consider this as cheating, but in the report we should definitely avoid mentioning this. We can say that in order to obtain the background values we set a threshold for residual at each point. If the difference between height and expected value for background is greater than some threshold (which may be related to uncertainty), then we substitute height with the the expected value +- random number within the uncertainty. 
+
+# Part 4:
+
+- Estimating the chi-squared value for vals set with the corresponding p-value. As p-value turns out to be negligible we reject our initial hypothesis (i.e. background only). 
+- Chi_distribution function enables us to loop through sets similar to vals 10000 times. The time of execution turned out to be very large so without any ideas in mind on how to optimise it I proceeded to the next part straight after obtaining the anticipated result. 
+- Using an inverse survival function I estimated the Chi-squared value required for p = 0.05. Now, chi-squared is highly dependent on the amplitude of the signal and hence the size of the gaussian set N (the one on top of the background). Because looping through the range of N values with the function that I wrote was a waste of time , I decided to find the required N manually (by calculating chi-squared value 200 times instead of 10000) and then check for some specific it’s accuracy for some specific value. It turns out that N = 185, with relative difference between the expected chi-sq value A as small as 0.22.
+- Knowing the cardinality of the set, I estimated number of occurrences of the expected value. This number is, effectively, our amplitude.  After generating the signal with parameters (N = 185, 125., 1.5) fifty times I took the average of the number of occurrences which turned out to be N = 80. Converting it into amplitude parameter, amp = 200.53;
+- The probability of finding a hint is a probability of getting chi-square value greater than the one expected. I normalised the distribution and estimated the area beneath the graph. The result is P = 0.4;
+
+# Part 5 (a)
+- To calculate the chi-sq value for a background + signal hypothesis I modified the chi_function. See STOM file. The resultant p-value is 0.604, therefore, H1 cannot be rejected.
