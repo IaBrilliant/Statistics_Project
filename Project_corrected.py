@@ -18,10 +18,11 @@ import seaborn as sns
 params = {'figure.figsize': [5, 5]} 
 plt.rcParams.update(params)
 
+#%% Generates plot of raw data (including signal) w/ error bars
 # Part 1 
 
 f = open('Values', 'rb')
-vals = pickle.load(f)
+vals = pickle.load(f)#Loads the data from preset values rather than generating anything new
 f.close()
 
 bin_heights, bin_edges, patches = plt.hist(vals, range = [104, 155], bins = 30) #104-155 - specified range
@@ -33,10 +34,11 @@ plt.ylabel('Number of Entries', fontstyle = 'italic')
 plt.ylim(0, 2000)
 plt.xlim(104, 155)
 
+#%% Parameterising the exponential decay
 # Part 2 
 
-def delete(x):              #Previous algorithm didn't work
-    if x > 122 and x < 127: #You can play around with these values and you will realise that lambda is the highest with these params. 
+def delete(x):              #Defines a function to label values we want to remove as 'true'
+    if x > 122 and x < 127:  
       return False          #This is due to the fact that the gaussian peak is approx. in this range
     else: 
       return True 
@@ -47,35 +49,39 @@ def findA(la, bin_edg, bin_heig):
     dArea = 0
     for b in bin_heig:
         if count < 10 or count > 13:
-            dArea += b*(bin_edg[count+1] - bin_edg[count]) #total area under histrogram
+            dArea += b*(bin_edg[count+1] - bin_edg[count]) #Total area under histrogram
             count += 1    
         else: count+=1
     return dArea*la/(la**2*(np.exp(-104.0/la) - np.exp(-121.0/la) + np.exp(-127.8/la) - np.exp(-155.0/la))) #You find A by equating areas under exp. and histogram 
  
 
-vals_truncated = filter(delete, vals) # Filter is fast and efficient in deleting
-lamb = mean(vals_truncated)
-a = findA(lamb, bin_edges, bin_heights) #finding normalisation factor
+vals_truncated = filter(delete, vals) # Filter is fast and efficient in deleting, so gives us a set with only exponential data
+lamb = mean(vals_truncated)#Gives the lambda estimator
+a = findA(lamb, bin_edges, bin_heights) #Finding normalisation factor
 expectation = sht.get_B_expectation(bin_edges, a, lamb) 
 plt.plot(bin_edges, expectation)
 #plt.savefig('Entries_set.png', dpi = 250)
 plt.show()
 
+#%%
 # Part 3
 '''
 Chi_sq_b = sht.get_B_chi_trunc(vals, [104, 121, 129.5, 155], [10, 15], a, lamb) 
 '''
 
 Chi_sq_b = sht.get_B_chi(vals[400:], [104,155], 30, a, lamb) 
-Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) 
-print("Reduced Chi-Squared (backgroung) value is", Chi_sq_b) #By reduced I mean divided by degrees of freedom
+print("Reduced Chi-Squared (background) value is", Chi_sq_b) #By reduced I mean divided by degrees of freedom
+print("P-value is:", stats.chi2.sf(Chi_sq_b * 28, 28))
 
+#%%
 # Part 4 (a)
 
+Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) #Same as part 2 but includes signal region
 print("Reduced Chi-Squared (+signal) value is", Chi_sq_s) #By reduced I mean divided by degrees of freedom
 print("P-value is:", stats.chi2.sf(Chi_sq_s * 28, 28))
 #Typical significane level is 5% hence we reject H0
 
+#%%
 # Part 4 (b) and (c)
 
 #Saving the Chi_set separately
@@ -148,7 +154,7 @@ def find_prob(set_, heights, edges): #set should be normalised
 
 print('Probability of finding a hint is:', find_prob(Chi_53_set, chi_53_heights, chi_53_edges))
 
-
+#%%
 # Part 5 (a)
 
 Chi_sig_back = sht.get_B_chi_H1(vals, [104, 155], 30, a, lamb, 125.0, 1.5, 700)
@@ -156,7 +162,21 @@ print('For the background + signal hypothesis chi-squared is =', Chi_sig_back)
 print('Corresponding p-value is =', stats.chi2.sf(Chi_sig_back * 25, 25))
 #The p-value is too big to reject the hypothesis
 
+#%% Paramterising the gaussian (bump) in data
 # Part 5 (b)
+
+def delete_exp(x):         #Defines a function to label values we want to remove as 'true'
+    if x < 122 or x > 127: #You can play around with these values and you will realise that lambda is the highest with these params. 
+      return False         #This is due to the fact that the gaussian peak is approx. in this range
+    else: 
+      return True
+
+vals_truncated_gauss = list(filter(delete_exp, vals))
+vals_truncated_gauss_chopped = list(map(lambda x: x-100,vals_truncated_gauss))
+#print(vals_truncated_gauss)
+bin_heights, bin_edges, patches = plt.hist(vals_truncated_gauss_chopped, range = [122, 127], bins = 1) #104-155 - specified range
+plt.ylim(0, 1000)
+plt.xlim(122, 127)
 
 # Technically because it is not asked which techniques we are supposed to use specifically, we can use
 # optimisator as a background parameterisation tech. 
@@ -167,7 +187,7 @@ Three possible ways of doing it:
 - Taking the residuals: residuals_hist = bin_heights - resudials at certain points
 - Creating a 2D matrix as in 2(d) to scan through Amp and sigma
 '''
-
+#%%
 # Part 5(c)
 ''' 
 You assume that the peak is at some m[i]
