@@ -55,8 +55,8 @@ def findA(la, bin_edg, bin_heig):
     return dArea*la/(la**2*(np.exp(-104.0/la) - np.exp(-121.0/la) + np.exp(-127.8/la) - np.exp(-155.0/la))) #You find A by equating areas under exp. and histogram 
  
 
-vals_truncated = filter(delete, vals) # Filter is fast and efficient in deleting, so gives us a set with only exponential data
-lamb = mean(vals_truncated)#Gives the lambda estimator
+vals_truncated = filter(delete, vals) #Filter is fast and efficient in deleting, so gives us a set with only exponential data
+lamb = mean(vals_truncated) #Gives the lambda estimator
 a = findA(lamb, bin_edges, bin_heights) #Finding normalisation factor
 expectation = sht.get_B_expectation(bin_edges, a, lamb) 
 plt.plot(bin_edges, expectation)
@@ -76,7 +76,7 @@ print("P-value is:", stats.chi2.sf(Chi_sq_b * 28, 28))
 #%%
 # Part 4 (a)
 
-Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) #Same as part 2 but includes signal region
+Chi_sq_s = sht.get_B_chi(vals, [104, 155], 30, a, lamb) #Same as part 3 but includes signal region
 print("Reduced Chi-Squared (+signal) value is", Chi_sq_s) #By reduced I mean divided by degrees of freedom
 print("P-value is:", stats.chi2.sf(Chi_sq_s * 28, 28))
 #Typical significane level is 5% hence we reject H0
@@ -164,36 +164,32 @@ print('Corresponding p-value is =', stats.chi2.sf(Chi_sig_back * 25, 25))
 
 #%% Paramterising the gaussian (bump) in data
 # Part 5 (b)
+import scipy.optimize as opt
+      
+bin_less_exp = []
+for i in range(0,30):
+    bin_less_exp.append(bin_heights[i]-a*np.exp(-bin_centers[i]/lamb))
+plt.plot(bin_centers,bin_less_exp,'o')
 
-def delete_exp(x):         #Defines a function to label values we want to remove as 'true'
-    if x < 122 or x > 127: #You can play around with these values and you will realise that lambda is the highest with these params. 
-      return False         #This is due to the fact that the gaussian peak is approx. in this range
-    else: 
-      return True
+def gauss(x,mu,sigma,amp):
+   y = amp*np.exp((x-mu)**2/-2*sigma**2)
+   return y
+p0 = [125,1.5,200]
+length = sp.linspace(104,155,200)
+gauss_curve,gauss_curve_err = opt.curve_fit(gauss,bin_centers,bin_less_exp,p0)
+plt.plot(length,gauss(length,gauss_curve[0],gauss_curve[1],gauss_curve[2]))
+plt.show()
+print(gauss_curve[0],gauss_curve[1],gauss_curve[2])
 
-vals_truncated_gauss = list(filter(delete_exp, vals))
-vals_truncated_gauss_chopped = list(map(lambda x: x-100,vals_truncated_gauss))
-#print(vals_truncated_gauss)
-bin_heights, bin_edges, patches = plt.hist(vals_truncated_gauss_chopped, range = [122, 127], bins = 1) #104-155 - specified range
-plt.ylim(0, 1000)
-plt.xlim(122, 127)
-
-# Technically because it is not asked which techniques we are supposed to use specifically, we can use
-# optimisator as a background parameterisation tech. 
-
-''' 
-Three possible ways of doing it:
-- Taking the gaussian set directly from vals[:400] and using optimiser on it
-- Taking the residuals: residuals_hist = bin_heights - resudials at certain points
-- Creating a 2D matrix as in 2(d) to scan through Amp and sigma
-'''
 #%%
 # Part 5(c)
-''' 
-You assume that the peak is at some m[i]
-For this particular case you calculate chi-sq
-Then by doing it over some range, you will find that Chi-sq is minimum at 125 GeV
-'''
+mass = range(104,155)
+Chi_sig_back_mass = []
+for i in mass:
+    Chi_sig_back_mass.append(sht.get_B_chi_H1(vals, [104, 155], 30, a, lamb, i, 1.5, 700))
+plt.plot(mass,Chi_sig_back_mass)
+plt.show()
+
 #%%
 
 f = open('Chi_Set_background', 'rb')
